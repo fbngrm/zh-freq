@@ -5,7 +5,7 @@ go 1.20
 require (
 	cloud.google.com/go/texttospeech v1.7.5
 	github.com/fbngrm/zh v1.0.4
-	github.com/fbngrm/zh-mnemonics v1.0.0
+	github.com/fbngrm/zh-mnemonics v1.0.1
 	golang.org/x/exp v0.0.0-20240213143201-ec583247a57a
 )
 

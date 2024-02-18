@@ -8,11 +8,20 @@ import (
 
 	"github.com/fbngrm/zh-freq/pkg/audio"
 	"github.com/fbngrm/zh-freq/pkg/cedict"
+	"github.com/fbngrm/zh-freq/pkg/cjkvi"
 	"github.com/fbngrm/zh-freq/pkg/components"
+	"github.com/fbngrm/zh-freq/pkg/frequency"
 	"github.com/fbngrm/zh-freq/pkg/heisig"
 	"github.com/fbngrm/zh-mnemonics/mnemonic"
 	"golang.org/x/exp/slog"
 )
+
+const idsSrc = "./pkg/heisig/heisig_decomp.json"
+const dictSrc = "./pkg/heisig/traditional.txt"
+const loachSrc = "./pkg/loach/loach_word_order.json"
+const cjkviSrc = "./pkg/cjkvi/ids.txt"
+const cedictSrc = "./pkg/cedict/cedict_1_0_ts_utf-8_mdbg.txt"
+const frequencySrc = "./pkg/frequency/global_wordfreq.release_UTF-8.txt"
 
 type Component struct {
 	SimplifiedChinese string
@@ -34,6 +43,7 @@ type Card struct {
 	Components         []Component
 	Audio              string
 	MnemonicBase       string
+	Mnemonic           string
 }
 
 type Builder struct {
@@ -45,6 +55,46 @@ type Builder struct {
 	FrequencyWordIndex []string
 	AudioDownloader    audio.Downloader
 	MnemonicsBuilder   *mnemonic.Builder
+}
+
+func NewBuilder(audioDir, mnemonicsSrc string, numWords int) (*Builder, error) {
+	heisigDecomp, err := heisig.NewDecompositionIndex(idsSrc)
+	if err != nil {
+		return nil, err
+	}
+	cjkviDecomp, err := cjkvi.NewDecompositionIndex(cjkviSrc)
+	if err != nil {
+		return nil, err
+	}
+	heisigDict, err := heisig.NewDict(dictSrc)
+	if err != nil {
+		return nil, err
+	}
+	cedictDict, err := cedict.NewDict(cedictSrc)
+	if err != nil {
+		return nil, err
+	}
+	componentsDict := components.NewDict()
+	index, err := frequency.NewWordIndex(frequencySrc)
+	if err != nil {
+		return nil, err
+	}
+	mnBuilder, err := mnemonic.NewBuilder(mnemonicsSrc)
+	if err != nil {
+		return nil, err
+	}
+	return &Builder{
+		HeisigDecomp:       heisigDecomp,
+		CJKVIDecomp:        cjkviDecomp,
+		HeisigDict:         heisigDict,
+		CedictDict:         cedictDict,
+		ComponentsDict:     componentsDict,
+		FrequencyWordIndex: index.GetMostFrequent(0, numWords),
+		AudioDownloader: audio.Downloader{
+			AudioDir: audioDir,
+		},
+		MnemonicsBuilder: mnBuilder,
+	}, nil
 }
 
 func (b *Builder) MustBuild() []*Card {
@@ -96,9 +146,9 @@ func (b *Builder) getHanziCard(word, hanzi string) *Card {
 		slog.Error(fmt.Sprintf("ignore hanzi: %v", err))
 	}
 
-	mnemonic := ""
+	mnemonicBase := ""
 	for _, data := range dictData {
-		mnemonic = fmt.Sprintf("%s%s - %s<br>%s<br>", mnemonic, data.Src, data.Pinyin, data.MnemonicBase)
+		mnemonicBase = fmt.Sprintf("%s%s - %s<br>%s<br>", mnemonicBase, data.Src, data.Pinyin, data.MnemonicBase)
 	}
 
 	return &Card{
@@ -106,7 +156,8 @@ func (b *Builder) getHanziCard(word, hanzi string) *Card {
 		TraditionalChinese: t,
 		DictData:           dictData,
 		Components:         b.getHanziComponents(hanzi),
-		MnemonicBase:       mnemonic,
+		MnemonicBase:       mnemonicBase,
+		Mnemonic:           b.MnemonicsBuilder.Lookup(hanzi),
 	}
 }
 
