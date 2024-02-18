@@ -20,10 +20,11 @@ type Component struct {
 }
 
 type DictData struct {
-	Src         string
-	English     string
-	Pinyin      string
-	Traditional string
+	Src          string
+	English      string
+	Pinyin       string
+	Traditional  string
+	MnemonicBase string
 }
 
 type Card struct {
@@ -32,6 +33,7 @@ type Card struct {
 	DictData           []DictData
 	Components         []Component
 	Audio              string
+	MnemonicBase       string
 }
 
 type Builder struct {
@@ -89,16 +91,22 @@ func (b *Builder) getWordCard(word string) *Card {
 }
 
 func (b *Builder) getHanziCard(word, hanzi string) *Card {
-	d, t, err := b.lookupDict(hanzi)
+	dictData, t, err := b.lookupDict(hanzi)
 	if err != nil {
 		slog.Error(fmt.Sprintf("ignore hanzi: %v", err))
+	}
+
+	mnemonic := ""
+	for _, data := range dictData {
+		mnemonic = fmt.Sprintf("%s%s - %s<br>%s<br>", mnemonic, data.Src, data.Pinyin, data.MnemonicBase)
 	}
 
 	return &Card{
 		SimplifiedChinese:  hanzi,
 		TraditionalChinese: t,
-		DictData:           d,
+		DictData:           dictData,
 		Components:         b.getHanziComponents(hanzi),
+		MnemonicBase:       mnemonic,
 	}
 }
 
@@ -165,10 +173,15 @@ func (b *Builder) lookupDict(word string) ([]DictData, string, error) {
 	r := []DictData{}
 	t := ""
 	if h, ok := b.HeisigDict[word]; ok {
+		m, err := b.MnemonicsBuilder.GetBase(h.Pinyin)
+		if err != nil {
+			return nil, "", fmt.Errorf("get mnemonic base for word: %s", word)
+		}
 		r = append(r, DictData{
-			Src:     "heisig",
-			English: h.Meaning,
-			Pinyin:  h.Pinyin,
+			Src:          "heisig",
+			English:      h.Meaning,
+			Pinyin:       h.Pinyin,
+			MnemonicBase: m,
 		})
 		t = h.TraditionalChinese
 	}
@@ -177,10 +190,15 @@ func (b *Builder) lookupDict(word string) ([]DictData, string, error) {
 			slog.Warn(fmt.Sprintf("found several cedict dict entries for word: %s", word))
 		}
 		for _, hh := range h {
+			m, err := b.MnemonicsBuilder.GetBase(hh.Readings)
+			if err != nil {
+				return nil, "", fmt.Errorf("get mnemonic base for word: %s", word)
+			}
 			r = append(r, DictData{
-				Src:     "cedict",
-				English: strings.Join(hh.Definitions, ", "),
-				Pinyin:  hh.Readings,
+				Src:          "cedict",
+				English:      strings.Join(hh.Definitions, ", "),
+				Pinyin:       hh.Readings,
+				MnemonicBase: m,
 			})
 			t = hh.Traditional
 		}
@@ -193,7 +211,7 @@ func (b *Builder) lookupDict(word string) ([]DictData, string, error) {
 	}
 
 	if len(r) == 0 {
-		return nil, "", fmt.Errorf("no entry found for %s", word)
+		return nil, "", fmt.Errorf("lookup word: %s", word)
 	}
 	return r, t, nil
 }

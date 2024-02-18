@@ -54,19 +54,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mnBuilder := mnemonic.NewBuilder(pinyin.NewTable())
-	s, err := mnBuilder.GetBase("")
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println(s)
-
 	// loachIndex, err := loach.NewFrequencyIndex(loachSrc)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
 
-	words := index.GetMostFrequent(0, 500)
+	words := index.GetMostFrequent(0, 5)
 
 	builder := card.Builder{
 		HeisigDecomp:       heisigDecomp,
@@ -78,7 +71,7 @@ func main() {
 		AudioDownloader: audio.Downloader{
 			AudioDir: audioDir,
 		},
-		MnemonicsBuilder: mnBuilder,
+		MnemonicsBuilder: mnemonic.NewBuilder(pinyin.NewTable()),
 	}
 	cards := builder.MustBuild()
 
@@ -94,7 +87,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("generate template for card %s: %v", c.SimplifiedChinese, err)
 		}
-		if err := anki.Export(deckname, modelname, front, back, "", ""); err != nil {
+		if err := anki.Export(deckname, modelname, front, back, c.MnemonicBase, ""); err != nil {
 			slog.Warn(fmt.Sprintf("export anki card %s: %v", c.SimplifiedChinese, err))
 		}
 	}
