@@ -1,0 +1,48 @@
+div.front, div.back {
+	text-align: left;
+	font-family: sans-serif;
+	font-size: 10px; /* line height is based on this size in Anki for some reason, so start with the smallest size used */
+}
+.font-01 {
+  font-family: serif;
+} 
+.font-07 {
+  font-family: font-07;
+} 
+span.tiny {font-size: 14px;}
+span.small {font-size: 16px;}
+span.medium {font-size: 20px;}
+span.large {font-size: 36px;}
+span.italic {font-style: italic;}
+
+.win .japanese {font-family: "Meiryo", "MS Mincho";}
+.mac .japanese {font-family: "Hiragino Mincho Pro";}
+.linux .japanese {font-family: "Kochi Mincho";}
+.mobile .japanese {font-family: "PingFang SC", "Motoya L Cedar", "Motoya L Maru", "DroidSansJapanese", "Hiragino Mincho ProN";}
+
+@font-face {
+  font-family: font-07;
+  src: url("_cicada.ttf");
+}
+.color1{
+  color: #FFAF00;
+}
+.color2{
+  color: #009BEE;
+}
+.color3{
+  color: #00C500;
+}
+.color4{
+  color: #EE0097;
+}
+.color5{
+  color: #EE0097;
+}
+.center{
+  text-align: center;
+}
+a:link { text-decoration: none; }
+a:visited { text-decoration: none; }
+a:hover { text-decoration: none; }
+a:active { text-decoration: none; }

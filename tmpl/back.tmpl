@@ -1,0 +1,35 @@
+<div class="back" lang="zh-Hans">
+<div  style="text-align:center">
+<a href="https://hanzicraft.com/character/{{ .SimplifiedChinese }}"><span class="huge japanese color2" style="text-align:center">{{ removeSpaces .SimplifiedChinese}}</span></a>
+<br>
+<br>
+<span class="medium japanese" style="text-align:center">{{ removeSpaces .SimplifiedChinese}}</span>
+<br>
+<br>
+<span class="tiny japanese">{{ audio .Audio }}</span>
+<br>
+</div>
+{{ range $value := .DictData }}
+<span class="tiny color4">{{ .Src }}</span>
+<br>
+<span class="medium color3">{{ .Pinyin }}</span>
+<br>
+<span class="small">{{ .English }}</span>
+<br>
+<br>
+<br>
+{{ end }}
+<span class="small">
+<span class="tiny color1">Components</span>
+<br>
+{{ range .Components }}
+<a href="https://hanzicraft.com/character/{{ .SimplifiedChinese }}"><span class="medium color2">{{ .SimplifiedChinese }}</span><span style="color:white"> {{ .English }}</span></a>
+<br>
+<br>
+{{ end }}
+</span>
+<br>
+<span class="tiny color4">Traditional</span>
+<br>
+<span class="large">{{ .TraditionalChinese }}</span>
+</div>
