@@ -15,7 +15,7 @@ const audioDir = "./audio"
 const mnemonicsSrc = "/home/f/Dropbox/notes/chinese/mnemonics/words.csv"
 
 func main() {
-	builder, err := card.NewBuilder(audioDir, mnemonicsSrc, 5)
+	builder, err := card.NewBuilder(audioDir, mnemonicsSrc, 50)
 	if err != nil {
 		log.Fatal(err)
 	}

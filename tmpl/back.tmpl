@@ -9,12 +9,15 @@
 <span class="tiny japanese">{{ audio .Audio }}</span>
 <br>
 </div>
-{{ range $value := .DictData }}
-<span class="tiny color4">{{ .Src }}</span>
+{{ range $key, $values := .DictEntries }}
+<span class="tiny color4">{{ $key }}</span>
 <br>
-<span class="medium color3">{{ .Pinyin }}</span>
+	{{ range $k, $v := $values }}
+<span class="medium color3">{{ $v.Pinyin }}</span>
 <br>
-<span class="small">{{ .English }}</span>
+<span class="small">{{ $v.English }}</span>
+<br>
+	{{ end }}
 <br>
 <br>
 <br>

@@ -28,7 +28,7 @@ type Component struct {
 	English           string
 }
 
-type DictData struct {
+type DictEntry struct {
 	Src          string
 	English      string
 	Pinyin       string
@@ -39,7 +39,7 @@ type DictData struct {
 type Card struct {
 	SimplifiedChinese  string
 	TraditionalChinese string
-	DictData           []DictData
+	DictEntries        map[string]map[string]DictEntry // map[dict_name]map[pinyin]DictEntry
 	Components         []Component
 	Audio              string
 	MnemonicBase       string
@@ -135,26 +135,28 @@ func (b *Builder) getWordCard(word string) *Card {
 	return &Card{
 		SimplifiedChinese:  word,
 		TraditionalChinese: t,
-		DictData:           d,
+		DictEntries:        d,
 		Components:         b.getWordComponents(word),
 	}
 }
 
 func (b *Builder) getHanziCard(word, hanzi string) *Card {
-	dictData, t, err := b.lookupDict(hanzi)
+	entries, t, err := b.lookupDict(hanzi)
 	if err != nil {
 		slog.Error(fmt.Sprintf("ignore hanzi: %v", err))
 	}
 
 	mnemonicBase := ""
-	for _, data := range dictData {
-		mnemonicBase = fmt.Sprintf("%s%s - %s<br>%s<br>", mnemonicBase, data.Src, data.Pinyin, data.MnemonicBase)
+	for _, entry := range entries {
+		for _, result := range entry {
+			mnemonicBase = fmt.Sprintf("%s%s - %s<br>%s<br>", mnemonicBase, result.Src, result.Pinyin, result.MnemonicBase)
+		}
 	}
 
 	return &Card{
 		SimplifiedChinese:  hanzi,
 		TraditionalChinese: t,
-		DictData:           dictData,
+		DictEntries:        entries,
 		Components:         b.getHanziComponents(hanzi),
 		MnemonicBase:       mnemonicBase,
 		Mnemonic:           b.MnemonicsBuilder.Lookup(hanzi),
@@ -165,17 +167,18 @@ func (b *Builder) getWordComponents(word string) []Component {
 	components := []Component{}
 	for _, h := range word {
 		s := string(h)
-		r, _, err := b.lookupDict(s)
+		entries, _, err := b.lookupDict(s)
 		if err != nil {
-			slog.Warn(fmt.Sprintf("get components for word %s: %v", word, err))
+			slog.Warn(fmt.Sprintf("get components for %s: %v", word, err))
 		}
-
 		e := []string{}
-		for _, result := range r {
-			e = append(e, result.English)
+		for _, entry := range entries {
+			for _, result := range entry {
+				e = append(e, result.English)
+			}
 		}
 		if len(e) == 0 {
-			slog.Warn(fmt.Sprintf("component meaning is empty in heisig: %s", s))
+			slog.Warn(fmt.Sprintf("component meaning is empty: %s", s))
 		}
 		components = append(components, Component{
 			SimplifiedChinese: s,
@@ -194,19 +197,22 @@ func (b *Builder) getHanziComponents(hanzi string) []Component {
 	}
 	components := []Component{}
 	if len(decomp) == 0 {
+		// FIXME: try cjkvi decomp here
 		slog.Warn(fmt.Sprintf("no components found: %s", hanzi))
 	} else {
 		for _, d := range decomp {
 			if d == hanzi {
 				continue
 			}
-			r, _, err := b.lookupDict(d)
+			entries, _, err := b.lookupDict(d)
 			if err != nil {
 				slog.Warn(fmt.Sprintf("get components for %s: %v", hanzi, err))
 			}
 			e := []string{}
-			for _, result := range r {
-				e = append(e, result.English)
+			for _, entry := range entries {
+				for _, result := range entry {
+					e = append(e, result.English)
+				}
 			}
 			if len(e) == 0 {
 				slog.Warn(fmt.Sprintf("component meaning is empty in heisig: %s", d))
@@ -220,49 +226,68 @@ func (b *Builder) getHanziComponents(hanzi string) []Component {
 	return components
 }
 
-func (b *Builder) lookupDict(word string) ([]DictData, string, error) {
-	r := []DictData{}
+func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, string, error) {
+	// map[dict_name]map[pinyin]DictEntry
+	entries := map[string]map[string]DictEntry{}
 	t := ""
+
+	// lookup in heisig dict
 	if h, ok := b.HeisigDict[word]; ok {
 		m, err := b.MnemonicsBuilder.GetBase(h.Pinyin)
 		if err != nil {
 			return nil, "", fmt.Errorf("get mnemonic base for word: %s", word)
 		}
-		r = append(r, DictData{
+		r := map[string]DictEntry{}
+		r[h.Pinyin] = DictEntry{
 			Src:          "heisig",
 			English:      h.Meaning,
 			Pinyin:       h.Pinyin,
 			MnemonicBase: m,
-		})
+		}
+		entries["heisig"] = r
 		t = h.TraditionalChinese
 	}
+
+	// lookup in cedict
 	if h, ok := b.CedictDict[word]; ok {
-		if len(h) > 1 {
-			slog.Warn(fmt.Sprintf("found several cedict dict entries for word: %s", word))
-		}
+		r := map[string]DictEntry{}
 		for _, hh := range h {
+			if e, ok := r[hh.Readings]; ok {
+				r[hh.Readings] = DictEntry{
+					Src:          e.Src,
+					English:      e.English + ", " + strings.Join(hh.Definitions, ", "),
+					Pinyin:       e.Pinyin,
+					MnemonicBase: e.MnemonicBase,
+				}
+				continue
+			}
 			m, err := b.MnemonicsBuilder.GetBase(hh.Readings)
 			if err != nil {
 				return nil, "", fmt.Errorf("get mnemonic base for word: %s", word)
 			}
-			r = append(r, DictData{
+			r[hh.Readings] = DictEntry{
 				Src:          "cedict",
 				English:      strings.Join(hh.Definitions, ", "),
 				Pinyin:       hh.Readings,
 				MnemonicBase: m,
-			})
+			}
 			t = hh.Traditional
 		}
-	}
-	if h, ok := b.ComponentsDict[word]; ok {
-		r = append(r, DictData{
-			Src:     "components",
-			English: h.Definition,
-		})
+		entries["cedict"] = r
 	}
 
-	if len(r) == 0 {
+	// lookup in components dict
+	if h, ok := b.ComponentsDict[word]; ok {
+		r := map[string]DictEntry{}
+		r[""] = DictEntry{
+			Src:     "components",
+			English: h.Definition,
+		}
+		entries["components"] = r
+	}
+
+	if len(entries) == 0 {
 		return nil, "", fmt.Errorf("lookup word: %s", word)
 	}
-	return r, t, nil
+	return entries, t, nil
 }
