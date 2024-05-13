@@ -113,7 +113,7 @@ func (b *Builder) MustBuild() []*Card {
 			cards = append(cards, b.getHanziCard(word, string(hanzi)))
 		}
 		if utf8.RuneCountInString(word) > 1 {
-			cards = append(cards, b.getWordCard(word))
+			cards = append(cards, b.GetWordCard(word))
 		}
 	}
 	return b.GetAudio(cards)
@@ -134,7 +134,7 @@ func (b *Builder) GetAudio(cards []*Card) []*Card {
 	return cards
 }
 
-func (b *Builder) getWordCard(word string) *Card {
+func (b *Builder) GetWordCard(word string) *Card {
 	d, t, err := b.lookupDict(word)
 	if err != nil {
 		slog.Error(fmt.Sprintf("ignore word: %v", err))
