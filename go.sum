@@ -24,8 +24,8 @@ github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7
 github.com/envoyproxy/protoc-gen-validate v1.0.2 h1:QkIBuU5k+x7/QXPvPPnWXWlCdaBFApVqftFV6k087DA=
 github.com/fbngrm/zh v1.0.4 h1:eIRLwydYrhwUA92w3tv8ROof7rs5KpCZj/TrDGPcMJI=
 github.com/fbngrm/zh v1.0.4/go.mod h1:oUFCKZb2L56svPaND2+JiYrR/RmVTV5bckdSkZGxUgU=
-github.com/fbngrm/zh-mnemonics v1.0.1 h1:ajisaOnyvb5vcqR5DknluC25YNWlJy3f771eMJq+n/s=
-github.com/fbngrm/zh-mnemonics v1.0.1/go.mod h1:WnTb+5SUFmG0q3dc522woh0ZesI1NK2IHktAWNaQ0og=
+github.com/fbngrm/zh-mnemonics v1.0.6 h1:ErWcZ731x8EQQ73m0lKXhEfT2YwZRQ+vE7IQ74OnX3M=
+github.com/fbngrm/zh-mnemonics v1.0.6/go.mod h1:WnTb+5SUFmG0q3dc522woh0ZesI1NK2IHktAWNaQ0og=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/go-logr/logr v1.2.2/go.mod h1:jdQByPbusPIv2/zmleS9BjJVeZ6kBagPoEUsqbVz/1A=

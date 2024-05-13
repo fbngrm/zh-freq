@@ -21,6 +21,7 @@ var data = map[string]string{
 	"八": "eight/divide",
 	"丷": "eight/divide",
 	"冂": "upside down box",
+	"⼌": "upside down box",
 	"⺆": "upside down box",
 	"冖": "cover",
 	"冫": "ice",
@@ -410,6 +411,11 @@ var data = map[string]string{
 	"畐": "fat person who ate an entire rice field",
 	"𧾷": "stop talking",
 	"尧": "emperor",
+	"丁": "Mr. T (Mr. Ding)",
+	"㇇": "",
+	"𠃌": "",
+	"㇆": "",
+	"䒑": "horns",
 }
 
 type Component struct {

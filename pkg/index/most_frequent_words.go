@@ -1,4 +1,4 @@
-package frequency
+package index
 
 import (
 	"bufio"
@@ -14,7 +14,7 @@ type WordIndex struct {
 	Words []string
 }
 
-func NewWordIndex(src string) (*WordIndex, error) {
+func NewMostFrequent(src string) (*WordIndex, error) {
 	c := WordIndex{
 		path: src,
 	}

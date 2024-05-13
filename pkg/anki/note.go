@@ -157,18 +157,16 @@ func UpdateNoteInDeck(noteID string, noteFields map[string]string) error {
 func Export(deckName, modelName, front, back, mnemonicBase, mnemonic string) error {
 	// Add a note to the deck
 	noteFields := map[string]string{
-		"Front":        front,
+		"Chinese":      front,
 		"Back":         back,
 		"MnemonicBase": mnemonicBase,
 		"Mnemonic":     mnemonic,
 	}
 
-	noteID, err := AddNoteToDeck(deckName, modelName, noteFields)
+	_, err := AddNoteToDeck(deckName, modelName, noteFields)
 	if err != nil {
 		return fmt.Errorf("add note: %w", err)
 	}
-
-	fmt.Println("Note added successfully! Note ID:", noteID)
 
 	// // Update the note with new fields
 	// updatedFields := map[string]string{

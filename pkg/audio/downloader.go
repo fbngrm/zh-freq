@@ -2,7 +2,6 @@ package audio
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -60,7 +59,6 @@ func (p *Downloader) Fetch(ctx context.Context, query, filename string) (string,
 	filename = "most_freq_" + filename + ".mp3"
 	lessonPath := filepath.Join(p.AudioDir, filename)
 	if _, err := os.Stat(lessonPath); err == nil {
-		fmt.Printf("audio file exists: %s\n", filename)
 		return filename, nil
 	}
 
@@ -75,7 +73,6 @@ func (p *Downloader) Fetch(ctx context.Context, query, filename string) (string,
 		return "", err
 	}
 
-	fmt.Printf("audio content written to files:\n%s\n", lessonPath)
 	return filename, nil
 }
 

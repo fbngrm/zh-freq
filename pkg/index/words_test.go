@@ -1,4 +1,4 @@
-package frequency
+package index
 
 import (
 	"io/ioutil"
@@ -27,7 +27,7 @@ func TestNewWordIndex(t *testing.T) {
 	}
 
 	// Call NewWordIndex with the temporary file path
-	index, err := NewWordIndex(tmpfile.Name())
+	index, err := NewMostFrequent(tmpfile.Name())
 	if err != nil {
 		t.Fatalf("NewWordIndex returned an error: %v", err)
 	}
@@ -57,13 +57,14 @@ func stringSlicesEqual(a, b []string) bool {
 	}
 	return true
 }
+
 func TestWordIndex_GetMostFrequent(t *testing.T) {
 	wi := WordIndex{
 		Words: []string{"apple", "banana", "cherry", "banana", "apple"},
 	}
 
 	expected := []string{"a", "p", "l", "e", "apple", "b", "n", "banana", "c", "h", "r", "y", "cherry"}
-	result := wi.GetMostFrequent(100)
+	result := wi.GetMostFrequent(0, 100)
 
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Unexpected result. Expected: %v, Got: %v", expected, result)

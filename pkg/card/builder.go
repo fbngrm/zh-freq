@@ -10,8 +10,8 @@ import (
 	"github.com/fbngrm/zh-freq/pkg/cedict"
 	"github.com/fbngrm/zh-freq/pkg/cjkvi"
 	"github.com/fbngrm/zh-freq/pkg/components"
-	"github.com/fbngrm/zh-freq/pkg/frequency"
 	"github.com/fbngrm/zh-freq/pkg/heisig"
+	"github.com/fbngrm/zh-freq/pkg/hsk"
 	"github.com/fbngrm/zh-mnemonics/mnemonic"
 	"golang.org/x/exp/slog"
 )
@@ -47,17 +47,18 @@ type Card struct {
 }
 
 type Builder struct {
-	HeisigDecomp       map[string][]string
-	CJKVIDecomp        map[string][]string
-	HeisigDict         map[string]heisig.Entry
-	CedictDict         map[string][]cedict.Entry
-	ComponentsDict     map[string]components.Component
-	FrequencyWordIndex []string
-	AudioDownloader    audio.Downloader
-	MnemonicsBuilder   *mnemonic.Builder
+	HeisigDecomp     map[string][]string
+	CJKVIDecomp      map[string][]string
+	HeisigDict       map[string]heisig.Entry
+	CedictDict       map[string][]cedict.Entry
+	ComponentsDict   map[string]components.Component
+	WordIndex        []string
+	AudioDownloader  audio.Downloader
+	MnemonicsBuilder *mnemonic.Builder
+	HSKDict          map[string]hsk.Entry
 }
 
-func NewBuilder(audioDir, mnemonicsSrc string, numWords int) (*Builder, error) {
+func NewBuilder(audioDir, mnemonicsSrc, hskSrc string, numWords int) (*Builder, error) {
 	heisigDecomp, err := heisig.NewDecompositionIndex(idsSrc)
 	if err != nil {
 		return nil, err
@@ -75,31 +76,38 @@ func NewBuilder(audioDir, mnemonicsSrc string, numWords int) (*Builder, error) {
 		return nil, err
 	}
 	componentsDict := components.NewDict()
-	index, err := frequency.NewWordIndex(frequencySrc)
-	if err != nil {
-		return nil, err
-	}
+	// index, err := index.NewMostFrequent(frequencySrc)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	mnBuilder, err := mnemonic.NewBuilder(mnemonicsSrc)
 	if err != nil {
 		return nil, err
 	}
+	hskDict, err := hsk.NewDict(hskSrc)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Builder{
-		HeisigDecomp:       heisigDecomp,
-		CJKVIDecomp:        cjkviDecomp,
-		HeisigDict:         heisigDict,
-		CedictDict:         cedictDict,
-		ComponentsDict:     componentsDict,
-		FrequencyWordIndex: index.GetMostFrequent(0, numWords),
+		HeisigDecomp:   heisigDecomp,
+		CJKVIDecomp:    cjkviDecomp,
+		HeisigDict:     heisigDict,
+		CedictDict:     cedictDict,
+		ComponentsDict: componentsDict,
+		// WordIndex:      index.GetMostFrequent(0, numWords),
+		WordIndex: hsk.GetByLevel(hskDict, 1),
 		AudioDownloader: audio.Downloader{
 			AudioDir: audioDir,
 		},
 		MnemonicsBuilder: mnBuilder,
+		HSKDict:          hskDict,
 	}, nil
 }
 
 func (b *Builder) MustBuild() []*Card {
 	cards := []*Card{}
-	for _, word := range b.FrequencyWordIndex {
+	for _, word := range b.WordIndex {
 		for _, hanzi := range word {
 			// if not hanzi is already known
 			cards = append(cards, b.getHanziCard(word, string(hanzi)))
@@ -231,11 +239,35 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 	entries := map[string]map[string]DictEntry{}
 	t := ""
 
+	// lookup in HSK dict
+	if h, ok := b.HSKDict[word]; ok {
+		var m string
+		var err error
+		if utf8.RuneCountInString(word) == 1 {
+			m, err = b.MnemonicsBuilder.GetBase(h.Pinyin)
+			if err != nil {
+				slog.Warn(fmt.Sprintf("hsk: get mnemonic base for: %s", h.Pinyin))
+			}
+		}
+		r := map[string]DictEntry{}
+		r[h.Pinyin] = DictEntry{
+			Src:          "hsk",
+			English:      h.Meaning,
+			Pinyin:       h.Pinyin,
+			MnemonicBase: m,
+		}
+		entries["hsk"] = r
+	}
+
 	// lookup in heisig dict
 	if h, ok := b.HeisigDict[word]; ok {
-		m, err := b.MnemonicsBuilder.GetBase(h.Pinyin)
-		if err != nil {
-			return nil, "", fmt.Errorf("get mnemonic base for word: %s", word)
+		var m string
+		var err error
+		if utf8.RuneCountInString(word) == 1 {
+			m, err = b.MnemonicsBuilder.GetBase(h.Pinyin)
+			if err != nil {
+				slog.Warn(fmt.Sprintf("heisig: get mnemonic base for: %s", h.Pinyin))
+			}
 		}
 		r := map[string]DictEntry{}
 		r[h.Pinyin] = DictEntry{
@@ -261,9 +293,13 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 				}
 				continue
 			}
-			m, err := b.MnemonicsBuilder.GetBase(hh.Readings)
-			if err != nil {
-				return nil, "", fmt.Errorf("get mnemonic base for word: %s", word)
+			var m string
+			var err error
+			if utf8.RuneCountInString(word) == 1 {
+				m, err = b.MnemonicsBuilder.GetBase(hh.Readings)
+				if err != nil {
+					slog.Warn(fmt.Sprintf("cedict: get mnemonic base for: %s", hh.Readings))
+				}
 			}
 			r[hh.Readings] = DictEntry{
 				Src:          "cedict",
