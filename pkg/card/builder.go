@@ -110,7 +110,7 @@ func (b *Builder) MustBuild() []*Card {
 	for _, word := range b.WordIndex {
 		for _, hanzi := range word {
 			// if not hanzi is already known
-			cards = append(cards, b.getHanziCard(word, string(hanzi)))
+			cards = append(cards, b.GetHanziCard(word, string(hanzi)))
 		}
 		if utf8.RuneCountInString(word) > 1 {
 			cards = append(cards, b.GetWordCard(word))
@@ -148,7 +148,7 @@ func (b *Builder) GetWordCard(word string) *Card {
 	}
 }
 
-func (b *Builder) getHanziCard(word, hanzi string) *Card {
+func (b *Builder) GetHanziCard(word, hanzi string) *Card {
 	entries, t, err := b.lookupDict(hanzi)
 	if err != nil {
 		slog.Error(fmt.Sprintf("ignore hanzi: %v", err))
