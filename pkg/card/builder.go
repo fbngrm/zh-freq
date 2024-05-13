@@ -22,6 +22,7 @@ const loachSrc = "./pkg/loach/loach_word_order.json"
 const cjkviSrc = "./pkg/cjkvi/ids.txt"
 const cedictSrc = "./pkg/cedict/cedict_1_0_ts_utf-8_mdbg.txt"
 const frequencySrc = "./pkg/frequency/global_wordfreq.release_UTF-8.txt"
+const hskSrc = "./pkg/hsk/3.0"
 
 type Component struct {
 	SimplifiedChinese string
@@ -58,7 +59,7 @@ type Builder struct {
 	HSKDict          map[string]hsk.Entry
 }
 
-func NewBuilder(audioDir, mnemonicsSrc, hskSrc string, numWords int) (*Builder, error) {
+func NewBuilder(audioDir, mnemonicsSrc string) (*Builder, error) {
 	heisigDecomp, err := heisig.NewDecompositionIndex(idsSrc)
 	if err != nil {
 		return nil, err
@@ -95,8 +96,7 @@ func NewBuilder(audioDir, mnemonicsSrc, hskSrc string, numWords int) (*Builder, 
 		HeisigDict:     heisigDict,
 		CedictDict:     cedictDict,
 		ComponentsDict: componentsDict,
-		// WordIndex:      index.GetMostFrequent(0, numWords),
-		WordIndex: hsk.GetByLevel(hskDict, 1),
+		WordIndex:      hsk.GetByLevel(hskDict, 1),
 		AudioDownloader: audio.Downloader{
 			AudioDir: audioDir,
 		},

@@ -13,10 +13,9 @@ import (
 
 const audioDir = "./audio"
 const mnemonicsSrc = "/home/f/Dropbox/notes/chinese/mnemonics/words.csv"
-const hskSrc = "./pkg/hsk/3.0"
 
 func main() {
-	builder, err := card.NewBuilder(audioDir, mnemonicsSrc, hskSrc, 50)
+	builder, err := card.NewBuilder(audioDir, mnemonicsSrc)
 	if err != nil {
 		log.Fatal(err)
 	}
