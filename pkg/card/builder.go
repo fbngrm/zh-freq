@@ -24,6 +24,16 @@ const cedictSrc = "./pkg/cedict/cedict_1_0_ts_utf-8_mdbg.txt"
 const frequencySrc = "./pkg/frequency/global_wordfreq.release_UTF-8.txt"
 const hskSrc = "./pkg/hsk/3.0"
 
+type CedictEntry struct {
+	CedictPinyin  string `yaml:"cedict_pinyin"`
+	CedictEnglish string `yaml:"cedict_en"`
+}
+
+type HSKEntry struct {
+	HSKPinyin  string `yaml:"hsk_pinyin"`
+	HSKEnglish string `yaml:"hsk_en"`
+}
+
 type Component struct {
 	SimplifiedChinese string
 	English           string
@@ -326,4 +336,30 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 		return nil, "", fmt.Errorf("lookup word: %s", word)
 	}
 	return entries, t, nil
+}
+
+func GetHSKEntries(card *Card) []HSKEntry {
+	hskEntries := make([]HSKEntry, 0)
+	if hsk, ok := card.DictEntries["hsk"]; ok {
+		for _, entry := range hsk {
+			hskEntries = append(hskEntries, HSKEntry{
+				HSKPinyin:  entry.Pinyin,
+				HSKEnglish: entry.English,
+			})
+		}
+	}
+	return hskEntries
+}
+
+func GetCedictEntries(card *Card) []CedictEntry {
+	cedictEntries := make([]CedictEntry, 0)
+	if cedict, ok := card.DictEntries["cedict"]; ok {
+		for _, entry := range cedict {
+			cedictEntries = append(cedictEntries, CedictEntry{
+				CedictPinyin:  entry.Pinyin,
+				CedictEnglish: entry.English,
+			})
+		}
+	}
+	return cedictEntries
 }
