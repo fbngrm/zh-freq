@@ -1,12 +1,10 @@
 package card
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"unicode/utf8"
 
-	"github.com/fbngrm/zh-freq/pkg/audio"
 	"github.com/fbngrm/zh-freq/pkg/cedict"
 	"github.com/fbngrm/zh-freq/pkg/cjkvi"
 	"github.com/fbngrm/zh-freq/pkg/components"
@@ -52,7 +50,6 @@ type Card struct {
 	TraditionalChinese string
 	DictEntries        map[string]map[string]DictEntry // map[dict_name]map[pinyin]DictEntry
 	Components         []Component
-	Audio              string
 	MnemonicBase       string
 	Mnemonic           string
 }
@@ -64,12 +61,11 @@ type Builder struct {
 	CedictDict       map[string][]cedict.Entry
 	ComponentsDict   map[string]components.Component
 	WordIndex        []string
-	AudioDownloader  audio.Downloader
 	MnemonicsBuilder *mnemonic.Builder
 	HSKDict          map[string]hsk.Entry
 }
 
-func NewBuilder(audioDir, mnemonicsSrc string) (*Builder, error) {
+func NewBuilder(mnemonicsSrc string) (*Builder, error) {
 	heisigDecomp, err := heisig.NewDecompositionIndex(idsSrc)
 	if err != nil {
 		return nil, err
@@ -101,15 +97,12 @@ func NewBuilder(audioDir, mnemonicsSrc string) (*Builder, error) {
 	}
 
 	return &Builder{
-		HeisigDecomp:   heisigDecomp,
-		CJKVIDecomp:    cjkviDecomp,
-		HeisigDict:     heisigDict,
-		CedictDict:     cedictDict,
-		ComponentsDict: componentsDict,
-		WordIndex:      hsk.GetByLevel(hskDict, 1),
-		AudioDownloader: audio.Downloader{
-			AudioDir: audioDir,
-		},
+		HeisigDecomp:     heisigDecomp,
+		CJKVIDecomp:      cjkviDecomp,
+		HeisigDict:       heisigDict,
+		CedictDict:       cedictDict,
+		ComponentsDict:   componentsDict,
+		WordIndex:        hsk.GetByLevel(hskDict, 1),
 		MnemonicsBuilder: mnBuilder,
 		HSKDict:          hskDict,
 	}, nil
@@ -125,21 +118,6 @@ func (b *Builder) MustBuild() []*Card {
 		if utf8.RuneCountInString(word) > 1 {
 			cards = append(cards, b.GetWordCard(word))
 		}
-	}
-	return b.GetAudio(cards)
-}
-
-func (b *Builder) GetAudio(cards []*Card) []*Card {
-	for _, c := range cards {
-		filename, err := b.AudioDownloader.Fetch(
-			context.Background(),
-			c.SimplifiedChinese,
-			c.SimplifiedChinese,
-		)
-		if err != nil {
-			slog.Warn(fmt.Sprintf("download audio for %s: %v", c.SimplifiedChinese, err))
-		}
-		c.Audio = filename
 	}
 	return cards
 }

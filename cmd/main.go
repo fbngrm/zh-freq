@@ -11,11 +11,10 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-const audioDir = "./audio"
 const mnemonicsSrc = "/home/f/Dropbox/notes/chinese/mnemonics/words.csv"
 
 func main() {
-	builder, err := card.NewBuilder(audioDir, mnemonicsSrc)
+	builder, err := card.NewBuilder(mnemonicsSrc)
 	if err != nil {
 		log.Fatal(err)
 	}
