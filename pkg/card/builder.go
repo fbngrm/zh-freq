@@ -116,16 +116,20 @@ func (b *Builder) MustBuild() []*Card {
 			cards = append(cards, b.GetHanziCard(word, string(hanzi)))
 		}
 		if utf8.RuneCountInString(word) > 1 {
-			cards = append(cards, b.GetWordCard(word))
+			if c, err := b.GetWordCard(word); err != nil {
+				slog.Error(err.Error())
+			} else {
+				cards = append(cards, c)
+			}
 		}
 	}
 	return cards
 }
 
-func (b *Builder) GetWordCard(word string) *Card {
+func (b *Builder) GetWordCard(word string) (*Card, error) {
 	d, t, err := b.lookupDict(word)
 	if err != nil {
-		slog.Error(fmt.Sprintf("ignore word: %v", err))
+		return nil, err
 	}
 
 	return &Card{
@@ -133,7 +137,7 @@ func (b *Builder) GetWordCard(word string) *Card {
 		TraditionalChinese: t,
 		DictEntries:        d,
 		Components:         b.getWordComponents(word),
-	}
+	}, nil
 }
 
 func (b *Builder) GetHanziCard(word, hanzi string) *Card {
@@ -311,7 +315,7 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 	}
 
 	if len(entries) == 0 {
-		return nil, "", fmt.Errorf("lookup word: %s", word)
+		return nil, "", fmt.Errorf("no results in lookup of word: %s", word)
 	}
 	return entries, t, nil
 }
