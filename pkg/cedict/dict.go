@@ -29,6 +29,10 @@ func NewDict(src string) (map[string][]Entry, error) {
 		}
 		parts := strings.Split(line, "[")
 
+		if len(parts) == 0 {
+			continue
+		}
+
 		ideographs := strings.Fields(parts[0])
 		traditional := ideographs[0]
 		simplified := ""
