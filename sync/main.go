@@ -12,7 +12,7 @@ const ankiConnectURL = "http://localhost:8765"
 
 func main() {
 	// Replace "YourDeckName" with the actual deck name
-	deckName := "zh"
+	deckName := "var"
 
 	// Prepare the request payload
 	requestData := map[string]interface{}{
