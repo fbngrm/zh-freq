@@ -1,6 +1,6 @@
 github.com/fbngrm/zh v1.0.4 h1:eIRLwydYrhwUA92w3tv8ROof7rs5KpCZj/TrDGPcMJI=
 github.com/fbngrm/zh v1.0.4/go.mod h1:oUFCKZb2L56svPaND2+JiYrR/RmVTV5bckdSkZGxUgU=
-github.com/fbngrm/zh-mnemonics v1.0.8 h1:N0TZ8OJDTECpMtl9BAA9Kyhp8qlPzgX1u1difJKnSF0=
-github.com/fbngrm/zh-mnemonics v1.0.8/go.mod h1:opmjenObYEML9aEz2xINmmIWU9OshbAHfVDvWsgon90=
+github.com/fbngrm/zh-mnemonics v1.0.9 h1:yMWy46OMtnVKKI16WmtY0c/UD9drKnal0lXJQ+bSGlQ=
+github.com/fbngrm/zh-mnemonics v1.0.9/go.mod h1:opmjenObYEML9aEz2xINmmIWU9OshbAHfVDvWsgon90=
 golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8 h1:LoYXNGAShUG3m/ehNk4iFctuhGX/+R1ZpfJ4/ia80JM=
 golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8/go.mod h1:jj3sYF3dwk5D+ghuXyeI3r5MFf+NT2An6/9dOA95KSI=

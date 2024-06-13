@@ -153,7 +153,7 @@ func (b *Builder) GetHanziCard(word, hanzi string) *Card {
 			mnemonicBase = fmt.Sprintf("%s%s - %s<br>%s<br>", mnemonicBase, result.Src, result.Pinyin, result.MnemonicBase)
 		}
 	}
-	w, err := b.MnemonicsBuilder.GetBase(hanzi)
+	w, err := b.MnemonicsBuilder.Get(hanzi)
 	if err != nil {
 		slog.Error("get pronounciation", "hanzi", hanzi, "err", err.Error())
 	}
@@ -238,10 +238,10 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 
 	// lookup in HSK dict
 	if h, ok := b.HSKDict[word]; ok {
-		w := &mnemonic.Word{}
+		m := mnemonic.Mnemonic{}
 		var err error
 		if utf8.RuneCountInString(word) == 1 {
-			w, err = b.MnemonicsBuilder.GetBase(h.Pinyin)
+			m, err = b.MnemonicsBuilder.Get(h.Pinyin)
 			if err != nil {
 				slog.Warn(fmt.Sprintf("hsk: get mnemonic base for: %s", h.Pinyin))
 			}
@@ -251,17 +251,17 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 			Src:          "hsk",
 			English:      h.Meaning,
 			Pinyin:       h.Pinyin,
-			MnemonicBase: w.Mnemonic,
+			MnemonicBase: m.Mnemonic,
 		}
 		entries["hsk"] = r
 	}
 
 	// lookup in heisig dict
 	if h, ok := b.HeisigDict[word]; ok {
-		w := &mnemonic.Word{}
+		m := mnemonic.Mnemonic{}
 		var err error
 		if utf8.RuneCountInString(word) == 1 {
-			w, err = b.MnemonicsBuilder.GetBase(h.Pinyin)
+			m, err = b.MnemonicsBuilder.Get(h.Pinyin)
 			if err != nil {
 				slog.Warn(fmt.Sprintf("heisig: get mnemonic base for: %s", h.Pinyin))
 			}
@@ -271,7 +271,7 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 			Src:          "heisig",
 			English:      h.Meaning,
 			Pinyin:       h.Pinyin,
-			MnemonicBase: w.Mnemonic,
+			MnemonicBase: m.Mnemonic,
 		}
 		entries["heisig"] = r
 		t = h.TraditionalChinese
@@ -290,10 +290,10 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 				}
 				continue
 			}
-			w := &mnemonic.Word{}
+			m := mnemonic.Mnemonic{}
 			var err error
 			if utf8.RuneCountInString(word) == 1 {
-				w, err = b.MnemonicsBuilder.GetBase(hh.Readings)
+				m, err = b.MnemonicsBuilder.Get(hh.Readings)
 				if err != nil {
 					slog.Warn(fmt.Sprintf("cedict: get mnemonic base for: %s", hh.Readings))
 				}
@@ -302,7 +302,7 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 				Src:          "cedict",
 				English:      strings.Join(hh.Definitions, ", "),
 				Pinyin:       hh.Readings,
-				MnemonicBase: w.Mnemonic,
+				MnemonicBase: m.Mnemonic,
 			}
 			t = hh.Traditional
 		}
