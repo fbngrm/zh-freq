@@ -38,11 +38,12 @@ type Component struct {
 }
 
 type DictEntry struct {
-	Src          string
-	English      string
-	Pinyin       string
-	Traditional  string
-	MnemonicBase string
+	Src            string
+	English        string
+	Pinyin         string
+	Traditional    string
+	MnemonicBase   string
+	Pronounciation string
 }
 
 type Card struct {
@@ -148,14 +149,12 @@ func (b *Builder) GetHanziCard(word, hanzi string) *Card {
 	}
 
 	mnemonicBase := ""
+	pronounciation := ""
 	for _, entry := range entries {
 		for _, result := range entry {
 			mnemonicBase = fmt.Sprintf("%s%s - %s<br>%s<br>", mnemonicBase, result.Src, result.Pinyin, result.MnemonicBase)
+			pronounciation = fmt.Sprintf("%s - %s<br>", result.Pinyin, result.Pronounciation)
 		}
-	}
-	w, err := b.MnemonicsBuilder.Get(hanzi)
-	if err != nil {
-		slog.Error("get pronounciation", "hanzi", hanzi, "err", err.Error())
 	}
 	return &Card{
 		SimplifiedChinese:  hanzi,
@@ -164,7 +163,7 @@ func (b *Builder) GetHanziCard(word, hanzi string) *Card {
 		Components:         b.getHanziComponents(hanzi),
 		MnemonicBase:       mnemonicBase,
 		Mnemonic:           b.MnemonicsBuilder.Lookup(hanzi),
-		Pronounciation:     w.Pronounciation,
+		Pronounciation:     pronounciation,
 	}
 }
 
@@ -248,10 +247,11 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 		}
 		r := map[string]DictEntry{}
 		r[h.Pinyin] = DictEntry{
-			Src:          "hsk",
-			English:      h.Meaning,
-			Pinyin:       h.Pinyin,
-			MnemonicBase: m.Mnemonic,
+			Src:            "hsk",
+			English:        h.Meaning,
+			Pinyin:         h.Pinyin,
+			MnemonicBase:   m.Mnemonic,
+			Pronounciation: m.Pronounciation,
 		}
 		entries["hsk"] = r
 	}
@@ -268,10 +268,11 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 		}
 		r := map[string]DictEntry{}
 		r[h.Pinyin] = DictEntry{
-			Src:          "heisig",
-			English:      h.Meaning,
-			Pinyin:       h.Pinyin,
-			MnemonicBase: m.Mnemonic,
+			Src:            "heisig",
+			English:        h.Meaning,
+			Pinyin:         h.Pinyin,
+			MnemonicBase:   m.Mnemonic,
+			Pronounciation: m.Pronounciation,
 		}
 		entries["heisig"] = r
 		t = h.TraditionalChinese
@@ -283,10 +284,11 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 		for _, hh := range h {
 			if e, ok := r[hh.Readings]; ok {
 				r[hh.Readings] = DictEntry{
-					Src:          e.Src,
-					English:      e.English + ", " + strings.Join(hh.Definitions, ", "),
-					Pinyin:       e.Pinyin,
-					MnemonicBase: e.MnemonicBase,
+					Src:            e.Src,
+					English:        e.English + ", " + strings.Join(hh.Definitions, ", "),
+					Pinyin:         e.Pinyin,
+					MnemonicBase:   e.MnemonicBase,
+					Pronounciation: e.Pronounciation,
 				}
 				continue
 			}
@@ -299,10 +301,11 @@ func (b *Builder) lookupDict(word string) (map[string]map[string]DictEntry, stri
 				}
 			}
 			r[hh.Readings] = DictEntry{
-				Src:          "cedict",
-				English:      strings.Join(hh.Definitions, ", "),
-				Pinyin:       hh.Readings,
-				MnemonicBase: m.Mnemonic,
+				Src:            "cedict",
+				English:        strings.Join(hh.Definitions, ", "),
+				Pinyin:         hh.Readings,
+				MnemonicBase:   m.Mnemonic,
+				Pronounciation: m.Pronounciation,
 			}
 			t = hh.Traditional
 		}
