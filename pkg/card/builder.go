@@ -153,7 +153,9 @@ func (b *Builder) GetHanziCard(word, hanzi string) *Card {
 	for _, entry := range entries {
 		for _, result := range entry {
 			mnemonicBase = fmt.Sprintf("%s%s - %s<br>%s<br>", mnemonicBase, result.Src, result.Pinyin, result.MnemonicBase)
-			pronounciation = fmt.Sprintf("%s - %s<br>", result.Pinyin, result.Pronounciation)
+			if result.Pronounciation != "" {
+				pronounciation = fmt.Sprintf("%s - %s<br>", result.Pinyin, result.Pronounciation)
+			}
 		}
 	}
 	return &Card{
