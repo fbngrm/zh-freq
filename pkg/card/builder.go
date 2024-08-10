@@ -10,6 +10,7 @@ import (
 	"github.com/fbngrm/zh-freq/pkg/components"
 	"github.com/fbngrm/zh-freq/pkg/heisig"
 	"github.com/fbngrm/zh-freq/pkg/hsk"
+	"github.com/fbngrm/zh-freq/pkg/translate"
 	"github.com/fbngrm/zh-mnemonics/mnemonic"
 	"golang.org/x/exp/slog"
 )
@@ -54,6 +55,7 @@ type Card struct {
 	MnemonicBase       string
 	Mnemonic           string
 	Pronounciation     string
+	Translation        string // this is supposed to come from data/translations file
 }
 
 type Builder struct {
@@ -110,15 +112,15 @@ func NewBuilder(mnemonicsSrc string) (*Builder, error) {
 	}, nil
 }
 
-func (b *Builder) MustBuild() []*Card {
+func (b *Builder) MustBuild(t translate.Translations) []*Card {
 	cards := []*Card{}
 	for _, word := range b.WordIndex {
 		for _, hanzi := range word {
 			// if not hanzi is already known
-			cards = append(cards, b.GetHanziCard(word, string(hanzi)))
+			cards = append(cards, b.GetHanziCard(word, string(hanzi), t))
 		}
 		if utf8.RuneCountInString(word) > 1 {
-			if c, err := b.GetWordCard(word); err != nil {
+			if c, err := b.GetWordCard(word, t); err != nil {
 				slog.Error(err.Error())
 			} else {
 				cards = append(cards, c)
@@ -128,7 +130,7 @@ func (b *Builder) MustBuild() []*Card {
 	return cards
 }
 
-func (b *Builder) GetWordCard(word string) (*Card, error) {
+func (b *Builder) GetWordCard(word string, t translate.Translations) (*Card, error) {
 	d, t, err := b.lookupDict(word)
 	if err != nil {
 		return nil, err
@@ -139,10 +141,11 @@ func (b *Builder) GetWordCard(word string) (*Card, error) {
 		TraditionalChinese: t,
 		DictEntries:        d,
 		Components:         b.getWordComponents(word),
+		Translation:        t[word],
 	}, nil
 }
 
-func (b *Builder) GetHanziCard(word, hanzi string) *Card {
+func (b *Builder) GetHanziCard(word, hanzi string, t translate.Translations) *Card {
 	entries, t, err := b.lookupDict(hanzi)
 	if err != nil {
 		slog.Error(fmt.Sprintf("ignore hanzi: %v", err))
@@ -153,9 +156,7 @@ func (b *Builder) GetHanziCard(word, hanzi string) *Card {
 	for _, entry := range entries {
 		for _, result := range entry {
 			mnemonicBase = fmt.Sprintf("%s%s - %s<br>%s<br>", mnemonicBase, result.Src, result.Pinyin, result.MnemonicBase)
-			if result.Pronounciation != "" {
-				pronounciation = fmt.Sprintf("%s - %s<br>", result.Pinyin, result.Pronounciation)
-			}
+			pronounciation = fmt.Sprintf("%s - %s<br>", result.Pinyin, result.Pronounciation)
 		}
 	}
 	return &Card{
@@ -166,6 +167,7 @@ func (b *Builder) GetHanziCard(word, hanzi string) *Card {
 		MnemonicBase:       mnemonicBase,
 		Mnemonic:           b.MnemonicsBuilder.Lookup(hanzi),
 		Pronounciation:     pronounciation,
+		Translation:        t[hanzi],
 	}
 }
 
