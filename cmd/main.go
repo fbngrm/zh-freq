@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	cards := builder.MustBuild()
+	cards := builder.MustBuild(map[string]string{})
 
 	deckname := "chinese::hsk1"
 	modelname := "vocab"

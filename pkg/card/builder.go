@@ -131,14 +131,14 @@ func (b *Builder) MustBuild(t translate.Translations) []*Card {
 }
 
 func (b *Builder) GetWordCard(word string, t translate.Translations) (*Card, error) {
-	d, t, err := b.lookupDict(word)
+	d, tr, err := b.lookupDict(word)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Card{
 		SimplifiedChinese:  word,
-		TraditionalChinese: t,
+		TraditionalChinese: tr,
 		DictEntries:        d,
 		Components:         b.getWordComponents(word),
 		Translation:        t[word],
@@ -146,7 +146,7 @@ func (b *Builder) GetWordCard(word string, t translate.Translations) (*Card, err
 }
 
 func (b *Builder) GetHanziCard(word, hanzi string, t translate.Translations) *Card {
-	entries, t, err := b.lookupDict(hanzi)
+	entries, tr, err := b.lookupDict(hanzi)
 	if err != nil {
 		slog.Error(fmt.Sprintf("ignore hanzi: %v", err))
 	}
@@ -161,7 +161,7 @@ func (b *Builder) GetHanziCard(word, hanzi string, t translate.Translations) *Ca
 	}
 	return &Card{
 		SimplifiedChinese:  hanzi,
-		TraditionalChinese: t,
+		TraditionalChinese: tr,
 		DictEntries:        entries,
 		Components:         b.getHanziComponents(hanzi),
 		MnemonicBase:       mnemonicBase,
