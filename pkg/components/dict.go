@@ -416,6 +416,8 @@ var data = map[string]string{
 	"𠃌": "",
 	"㇆": "",
 	"䒑": "horns",
+	"冊": "space invader",
+	"𦉫": "comb",
 }
 
 type Component struct {
